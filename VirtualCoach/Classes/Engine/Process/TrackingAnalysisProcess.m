@@ -137,7 +137,16 @@
             newPLayerBounds.end.y = _playerBounds.end.y * _scale;
             
             int32_t playerRegionId = regionAtZone(newPLayerBounds, pre_labels);
+            /*
+            NSString *imagePathExport = [@"/Volumes/Untitled/VideoTest/clean_2016-05-27_17.30.01/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_unbin.pgm", (unsigned long)_count]];
+            NSString *imagePathExport1 = [@"/Volumes/Untitled/VideoTest/clean_2016-05-27_17.30.01/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_sub.pgm", (unsigned long)_count]];
             
+            gray8i_t *unbinary = gray8ialloc(pre_binary->width, pre_binary->height);
+            unbinary = unbinarise(pre_binary);
+            
+            //pgmwrite(unbinary, [imagePathExport cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+            //pgmwrite(pre_isubstract, [imagePathExport1 cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+            */
             gray8ifree(pre_isubstract);
             binifree(pre_binary);
             
