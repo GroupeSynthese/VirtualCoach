@@ -39,7 +39,7 @@
             v2= speed2->data[PXL_IDX(width, x, y)].y;
             
             float tmpNorm2 = sqrt(u2*u2 + v2*v2);
-            if(tmpNorm2 > 0.000005){
+            if(tmpNorm2 > THRESHOLD_NORM_SPEED_VECTORS){
                 norm2 += tmpNorm2;
                 countSpeed2++;
             }
@@ -48,17 +48,14 @@
             v1= speed1->data[PXL_IDX(width, x, y)].y;
             
             float tmpNorm1 = sqrt(u1*u1 + v1*v1);
-            if(tmpNorm1 > 0.000005){
+            if(tmpNorm1 > THRESHOLD_NORM_SPEED_VECTORS){
                 norm1 += tmpNorm1;
                 countSpeed1 ++;
             }
             
-            
-<<<<<<< HEAD
+
             if (tmpNorm2 > THRESHOLD_HISTOGRAM){
-=======
-            if (norm2 > 0.000005){
->>>>>>> GroupeSynthese/master
+
                 angle = atan2(-v2, u2) * 180 / M_PI;
                 if ((int)angle < 0) {
                     angle += 360;

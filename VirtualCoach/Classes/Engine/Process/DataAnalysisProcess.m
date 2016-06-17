@@ -38,11 +38,11 @@
 
 @property (nonatomic, assign) gray8i_t *firstFrame;
 @property (nonatomic, assign) gray8i_t *secondFrame;
-//@property (nonatomic, assign) gray8i_t *thirdFrame;
+@property (nonatomic, assign) gray8i_t *thirdFrame;
 
 @property (nonatomic, assign) rect_t firstFrameBounds;
 @property (nonatomic, assign) rect_t secondFrameBounds;
-//@property (nonatomic, assign) rect_t thirdFrameBounds;
+@property (nonatomic, assign) rect_t thirdFrameBounds;
 
 @property (nonatomic, assign) vect2darray_t *firstSpeedVectorArray;
 @property (nonatomic, assign) vect2darray_t *secondSpeedVectorArray;

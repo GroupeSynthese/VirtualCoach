@@ -94,7 +94,7 @@
         
         TrackingObjectPosition *objPos = (TrackingObjectPosition *)[objectsPosition objectAtIndex:i];
         
-<<<<<<< HEAD
+
         pt2d_t start = objPos.bounds.start, end = objPos.bounds.end;
         uint32_t tmp = start.x + start.y + end.x + end.y;
         
@@ -105,7 +105,7 @@
         NSDictionary *imageInformation = [NSDictionary dictionaryWithObjects:imageInformationObjects forKeys:imageInformationKeys];
         
         [relevantSequencesInformations addObject:imageInformation];
-=======
+
         if (motionInfo.intValue == 1 || motionInfo.intValue == 0)
         {
             NSArray *imageInformationKeys = [NSArray arrayWithObjects:@"imageId", @"start.x", @"start.y", @"end.x", @"end.y", @"moves", nil];
@@ -116,7 +116,7 @@
             
             [relevantSequencesInformations addObject:imageInformation];
         }
->>>>>>> GroupeSynthese/master
+
     }
     
     // initializing data analysis process where optical flow and analysis will be called
