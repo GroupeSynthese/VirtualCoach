@@ -138,14 +138,14 @@
             
             int32_t playerRegionId = regionAtZone(newPLayerBounds, pre_labels);
             /*
-            NSString *imagePathExport = [@"/Volumes/Untitled/VideoTest/clean_2016-05-27_17.30.01/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_unbin.pgm", (unsigned long)_count]];
-            NSString *imagePathExport1 = [@"/Volumes/Untitled/VideoTest/clean_2016-05-27_17.30.01/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_sub.pgm", (unsigned long)_count]];
+            NSString *imagePathExport = [@"/Volumes/ZORO 1/VideoTest/gray_2016-06-06_19.27.11/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_unbin.pgm", (unsigned long)_count]];
+            NSString *imagePathExport1 = [@"/Volumes/ZORO 1/VideoTest/gray_2016-06-06_19.27.11/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_sub.pgm", (unsigned long)_count]];
             
             gray8i_t *unbinary = gray8ialloc(pre_binary->width, pre_binary->height);
             unbinary = unbinarise(pre_binary);
             
-            //pgmwrite(unbinary, [imagePathExport cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
-            //pgmwrite(pre_isubstract, [imagePathExport1 cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+            pgmwrite(unbinary, [imagePathExport cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+            pgmwrite(pre_isubstract, [imagePathExport1 cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
             */
             gray8ifree(pre_isubstract);
             binifree(pre_binary);
@@ -172,7 +172,13 @@
             bini_t *binary = binarise(isubstract, _binaryThreshold);
             
             labels_t *nextLabels = label(binary);
+            /*
+            NSString *imagePathExport = [@"/Volumes/ZORO 1/VideoTest/gray_2016-06-06_19.46.35/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu_unbin.pgm", (unsigned long)_count]];
             
+            gray8i_t *unbinary = gray8ialloc(binary->width, binary->height);
+            unbinary = unbinarise(binary);
+            pgmwrite(unbinary, [imagePathExport cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+            */
             charact_t *ch = characterize(NULL, src, nextLabels);
             
             //            NSLog(@"export count : %lu", (unsigned long)_exportCount);

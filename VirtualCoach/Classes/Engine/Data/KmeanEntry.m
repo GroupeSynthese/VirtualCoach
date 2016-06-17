@@ -54,7 +54,7 @@
             }
             
             
-            if (norm2 > THRESHOLD_HISTOGRAM){
+            if (tmpNorm2 > THRESHOLD_HISTOGRAM){
                 angle = atan2(-v2, u2) * 180 / M_PI;
                 if ((int)angle < 0) {
                     angle += 360;
@@ -63,11 +63,10 @@
             }
         }
     }
-    //NSLog(@"countSpeed1: %d and countSpeed2: %d",countSpeed1,countSpeed2);
+    
     meanSpeed1 = norm1/countSpeed1;
     meanSpeed2 = norm2/countSpeed2;
     _meanAcceleration = meanSpeed2 - meanSpeed1;
-    //NSLog(@"meanAccelaration: %f",_meanAcceleration);
     for (NSInteger i=0; i<360; i++) {
         if ([[tmpHistogram objectAtIndex:i] intValue] > minHit) {
             minHit = [[tmpHistogram objectAtIndex:i] intValue];

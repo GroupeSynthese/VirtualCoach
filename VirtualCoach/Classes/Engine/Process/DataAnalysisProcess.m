@@ -319,6 +319,7 @@
         }
     }
 }
+
 /*
 - (void)didOutputSampleBufferForTest:(CMSampleBufferRef)sampleBuffer
 {
@@ -377,11 +378,218 @@
         //temp
         _count++;
         
-        NSString *imagePathExport = [@"/Volumes/Untitled/VideoTest/clean_2016-05-27_17.30.01/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu.pgm", (unsigned long)_count]];
-        
+        NSString *imagePathExport = [@"/Volumes/ZORO 1/VideoTest/gray_2016-06-06_19.27.11/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu.pgm", (unsigned long)_count]];
+        /*
+        NSLog(@"\n\n\n\n\n\n\n");
+        NSLog(@"index: %lu size of array:%lu", (unsigned long)_videoTrakingAnalysisInformationsIndex, (unsigned long)_videoTrakingAnalysisInformations.count);
+        NSLog(@"\n\n\n\n\n\n\n");
+        */
         NSDictionary *imageDict = [_videoTrakingAnalysisInformations objectAtIndex:_videoTrakingAnalysisInformationsIndex];
         NSNumber *imageId = [imageDict objectForKey:@"imageId"];
         
+        CGImageRef rgbImage = [ImageTools cgImageFromSampleBuffer:sampleBuffer];
+        CGImageRef rgbImageScaled = [ImageTools scaleCgimage:rgbImage scale:_scale];
+        
+        gray8i_t *src = [ImageTools cgImageToGrayImage:rgbImageScaled];
+        
+        CGImageRelease(rgbImage);
+        CGImageRelease(rgbImageScaled);
+        
+        if (_count == imageId.unsignedIntValue)
+        {
+            _videoTrakingAnalysisInformationsIndex++;
+            
+            NSNumber *moves = [imageDict objectForKey:@"moves"];
+            
+            if (moves.intValue == 1)
+            {
+                CGImageRef rgbImage = [ImageTools cgImageFromSampleBuffer:sampleBuffer];
+                CGImageRef rgbImageScaled = [ImageTools scaleCgimage:rgbImage scale:_scale];
+                
+                gray8i_t *src = [ImageTools cgImageToGrayImage:rgbImageScaled];
+                
+                pgmwrite(src, [imagePathExport cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+                
+                CGImageRelease(rgbImage);
+                CGImageRelease(rgbImageScaled);
+                
+                rect_t playerBounds;
+                
+                if (_sequenceStarted)       // sequence continues
+                {
+                    // get rect coordinates
+                    
+                    NSNumber *startX = [imageDict objectForKey:@"start.x"];
+                    NSNumber *startY = [imageDict objectForKey:@"start.y"];
+                    NSNumber *endX = [imageDict objectForKey:@"end.x"];
+                    NSNumber *endY = [imageDict objectForKey:@"end.y"];
+                    
+                    // initializing rect_t with rect coordinates
+                    
+                    playerBounds.start.x = startX.unsignedIntValue;
+                    playerBounds.end.x = endX.unsignedIntValue;
+                    playerBounds.start.y = startY.unsignedIntValue;
+                    playerBounds.end.y = endY.unsignedIntValue;
+                    
+                    if (_secondFrame == NULL)
+                    {
+                        _secondFrame = src;
+                        _secondFrameBounds = playerBounds;
+                    }
+                    
+                    else
+                    {
+                        if (_thirdFrame == NULL)
+                        {
+                            _thirdFrame = src;
+                            _thirdFrameBounds = playerBounds;
+                        }
+                        
+                        // optical flow
+                        
+                        vect2darray_t *speedVectors1 = opticalflow(_firstFrame, _secondFrame);
+                        
+                        double u = 0, v = 0;
+                        
+                        for (NSUInteger y = _secondFrameBounds.start.y; y < _secondFrameBounds.end.y; y++)
+                        {
+                            for (NSUInteger x = _secondFrameBounds.start.x; x < _secondFrameBounds.end.x; x++)
+                            {
+                                unsigned long idx = PXL_IDX(src->width, x, y);
+                                
+                                u = speedVectors1->data[idx].x;
+                                v = speedVectors1->data[idx].y;
+                                
+                                speedVectors1->data[idx].x = (_firstFrame->data[idx] > _binaryThreshold) * u;
+                                speedVectors1->data[idx].y = (_firstFrame->data[idx] > _binaryThreshold) * v;
+                            }
+                        }
+                        
+                        // optical flow
+                        
+                        vect2darray_t *speedVectors2 = opticalflow(_secondFrame, _thirdFrame);
+                        
+                        double w = 0, z = 0;
+                        
+                        for (NSUInteger y = _thirdFrameBounds.start.y; y < _thirdFrameBounds.end.y; y++)
+                        {
+                            for (NSUInteger x = _thirdFrameBounds.start.x; x < _thirdFrameBounds.end.x; x++)
+                            {
+                                unsigned long idx = PXL_IDX(src->width, x, y);
+                                
+                                w = speedVectors2->data[idx].x;
+                                z = speedVectors2->data[idx].y;
+                                
+                                speedVectors2->data[idx].x = (_secondFrame->data[idx] > _binaryThreshold) * w;
+                                speedVectors2->data[idx].y = (_secondFrame->data[idx] > _binaryThreshold) * z;
+                            }
+                        }
+                        
+                        [_histogram generateHistogramFromSpeedVector:speedVectors1 betweenInterval:playerBounds andWithImageWidth:src->width];
+                        [_histogram generateHistogramFromSpeedVector:speedVectors2 betweenInterval:playerBounds andWithImageWidth:src->width];
+                        
+                        [_entryDataset addKmeanEntryToDataSetFromFirstSpeedVectorsTab:speedVectors1 andSecondSpeedVectorsTab:speedVectors2 betweenInterval:playerBounds andWithImageWidth:src->width];
+                        
+                        gray8ifree(_firstFrame);
+                        _firstFrame = NULL;
+                        gray8ifree(_secondFrame);
+                        _secondFrame = NULL;
+                        
+                        _firstFrame = _thirdFrame;
+                        _thirdFrame = NULL;
+                        
+                        vect2darrfree(speedVectors1);
+                        vect2darrfree(speedVectors2);
+                        
+                        _firstFrameBounds.start.x = 0;
+                        _firstFrameBounds.start.y = 0;
+                        _firstFrameBounds.end.x = 0;
+                        _firstFrameBounds.end.y = 0;
+                        
+                        _secondFrameBounds.start.x = 0;
+                        _secondFrameBounds.start.y = 0;
+                        _secondFrameBounds.end.x = 0;
+                        _secondFrameBounds.end.y = 0;
+                        
+                        _thirdFrameBounds.start.x = 0;
+                        _thirdFrameBounds.start.y = 0;
+                        _thirdFrameBounds.end.x = 0;
+                        _thirdFrameBounds.end.y = 0;
+                    }
+                }
+                
+                else                        // sequence starts
+                {
+                    _sequenceStarted = YES;
+                    
+                    NSLog(@"Sequence starts at %f", (float)(_count / 60));
+                    
+                    //test
+                    _firstFrame = src;
+                    _firstFrameBounds = playerBounds;
+                    //tmp
+                    _sequenceImageStart = (int)(_count);
+                }
+            }
+            
+            else
+            {
+                if (_sequenceStarted)       // sequence ends
+                {
+                    _sequenceStarted = NO;
+                    
+                    //test
+                    _sequenceImageEnd = (int)(_count);
+                    
+                    // do
+                    
+                    NSString *foundMotion = [MotionDeduction recognizeTennisMotionWithHistogram:_histogram andLeftHanded:false];
+                    
+                    NSLog(@"Found motion : %@", foundMotion);
+                    
+                    if ([foundMotion isEqualToString:@"service"])
+                        _serviceCount++;
+                    
+                    if ([foundMotion isEqualToString:@"forehand"])
+                        _forehandCount++;
+                    
+                    if ([foundMotion isEqualToString:@"backhand"])
+                        _backhandCount++;
+                    
+                    NSDictionary *dictEntryDataset = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:_entryDataset, [NSNumber numberWithInt:_sequenceImageStart], [NSNumber numberWithInt:_sequenceImageEnd], nil] forKeys:[NSArray arrayWithObjects:@"entryDataset", @"startSequenceImage", @"endSequenceImage", nil]];
+                    
+                    [_entryDatasetsArray addObject:dictEntryDataset];
+                    
+                    _histogram = nil;
+                    _histogram = [[Histogram alloc] init];
+                    
+                    _entryDataset = nil;
+                    _entryDataset = [[KmeanEntryDataSet alloc] init];
+                    
+                    NSLog(@"Sequence ends at %f", (float)(_count / 60));
+                }
+            }
+        }
+        
+        //pgmwrite(src, [imagePathExport cStringUsingEncoding:NSASCIIStringEncoding], PGM_BINARY);
+        
+        gray8ifree(src);
+    }
+}
+
+/*
+- (void)didOutputSampleBufferForTest:(CMSampleBufferRef)sampleBuffer
+{
+    if (_canAnalyze)
+    {
+        //temp
+        _count++;
+ 
+        NSString *imagePathExport = [@"/Volumes/Untitled/VideoTest/clean_2016-05-27_17.30.01/" stringByAppendingPathComponent:[NSString stringWithFormat:@"%lu.pgm", (unsigned long)_count]];
+ 
+        NSDictionary *imageDict = [_videoTrakingAnalysisInformations objectAtIndex:_videoTrakingAnalysisInformationsIndex];
+        NSNumber *imageId = [imageDict objectForKey:@"imageId"];
+ 
         CGImageRef rgbImage = [ImageTools cgImageFromSampleBuffer:sampleBuffer];
         CGImageRef rgbImageScaled = [ImageTools scaleCgimage:rgbImage scale:_scale];
         
@@ -426,17 +634,7 @@
                     NSNumber *endX = [imageDict objectForKey:@"end.x"];
                     NSNumber *endY = [imageDict objectForKey:@"end.y"];
                     
-                    /*
-                    uint8_t c = moves.intValue == 1 ? 0 : 255;
-                    
-                    rect_t bds;
-                    bds.start.y = startY.unsignedIntValue;
-                    bds.start.x = startX.unsignedIntValue;
-                    bds.end.y = endY.unsignedIntValue;
-                    bds.end.x = endX.unsignedIntValue;
-                    
-                    drawrctgray8i(src, bds, c);
-                    */
+ 
                     // initializing rect_t with rect coordinates
                     
                     rect_t playerBounds;
@@ -543,7 +741,7 @@
         gray8ifree(src);
     }
 }
-
+*/
 
 - (void)didEstimateFrameCount:(Float64)frameCount
 {
