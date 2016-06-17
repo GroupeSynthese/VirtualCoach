@@ -53,9 +53,8 @@
                 countSpeed1 ++;
             }
             
-
+            
             if (tmpNorm2 > THRESHOLD_HISTOGRAM){
-
                 angle = atan2(-v2, u2) * 180 / M_PI;
                 if ((int)angle < 0) {
                     angle += 360;

@@ -50,10 +50,7 @@
         int newValue = (currentMarker == 0 && previousMarker == 0) ? 0 : 1;
         
         for (NSUInteger k = previousMarkerIndex + 1; k < currentMarkerIndex; k++)
-        {
-            if (((NSNumber *)[finalObjectsMotion objectAtIndex:k]).intValue != -2)
-                [finalObjectsMotion replaceObjectAtIndex:k withObject:[NSNumber numberWithInt:newValue]];
-        }
+            [finalObjectsMotion replaceObjectAtIndex:k withObject:[NSNumber numberWithInt:newValue]];
         
         previousMarker = currentMarker;
         previousMarkerIndex = currentMarkerIndex;
