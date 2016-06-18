@@ -20,7 +20,7 @@
     
     NSString * result;
     
-    int max = 0, angle = 400;
+    int max = 0, angle = -1;
     for (NSInteger i=0; i<anglesHistogram.data.count; i++) {
         if([[anglesHistogram.data objectAtIndex:i] intValue] > max){
             max = [[anglesHistogram.data objectAtIndex:i] intValue];
